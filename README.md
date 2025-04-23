@@ -15,52 +15,62 @@ https://book.getfoundry.sh/
 
 ## Usage
 
-### Build
+### Install package
 
 ```shell
-$ forge build
+$ forge install smartcontractkit/chainlink-brownie-contracts --no-commit 
+# install from github and check the lib folder and remapping in `foundry.toml`
 ```
+
 
 ### Test
 
 ```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
+$ forge test -vvv # -vvv for verbose output number of v(s) corresponds to the verbosity level
+$ forge test --match-test <test name> -vvv --fork-url <rpc url testnet>
+$ forge coverage --fork-url <rpc url testnet>
 ```
 
 ### Gas Snapshots
 
 ```shell
 $ forge snapshot
+$ forge snapshot -m <test name>
 ```
 
-### Anvil
+### Inspect
 
 ```shell
-$ anvil
+$ forge inspect FundMe storageLayout
+$ cast storage <contract address> <storage_slot>
 ```
 
-### Deploy
+### Deployment steps
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+$ forge build
+$ forge build --zksync # for zkSync build, output folder will be zkout
+$ forge create SimpleStorage --interactive
+$ # Using .env approach which is not recommended for production
+$ source .env
+$ forge script script/DeployFundMe.s.sol --rpc-url $RPC_URL --broadcast --private-key $PRIVATE_KEY
+$ # Using keystore approach
+$ cast wallet import devKey --interactive
+$ cast wallet list # to list the wallets
+$ forge script script/DeployFundMe.s.sol --rpc-url $RPC_URL --account devKey --sender 0x00_associated_public_address --broadcast
+$ # for zkSync deployment
+$ forge create src/SimpleStorage.sol:SimpleStorage --rpc-url $RPC_URL --account devKey --sender 0x00_associated_public_address --zksync --legacy
 ```
 
-### Cast
+### Scripts
 
 ```shell
-$ cast <subcommand>
+$ forge script script/DeployFundMe.s.sol --rpc-url $RPC_URL --account devKey --sender 0x00_associated_public_address --broadcast
+$ forge script script/Interactions.s.sol:fundFundMe --rpc-url $RPC_URL --account devKey --sender 0x00_associated_public_address --broadcast
 ```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### Gas Optimization
+* immutable, constant and memory variables are not saved in storage hence they are cheaper
+* storage variables are more expensive
+* private variable are more gas optimized but doesn't mean they are really private.
+* When contract is complied bytecode is generated and opcodes are generated as well
+* opcodes represent the gas cost each opcode will cost
